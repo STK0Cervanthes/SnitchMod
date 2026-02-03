@@ -546,20 +546,43 @@ public class Renderer {
 	 * middle center of text is at `pos` before moving it down the screen by `offset`
 	 */
 	private static void renderTextFacingCamera(Component text, Vec3 pos, float offset, float scale, int colorAlphaHex) {
+        // Create a new pose stack for proper 3D positioning
+        PoseStack poseStack = new PoseStack();
+        
+        // Translate to the world position
+        poseStack.translate(pos.x, pos.y, pos.z);
+        
+        // Make text face the camera
+        poseStack.mulPose(mc.gameRenderer.getMainCamera().rotation());
+        
+        // Calculate scale based on distance
+        scale *= 0.005f * (mc.player.position().distanceTo(pos) / 2.4);
+        scale = Math.clamp(scale, 0.015f, 0.15f);
+        
+        // Apply scaling (negative Y to flip text right-side up)
+        poseStack.scale(scale, -scale, scale);
+        
+        // Calculate text positioning
         float w = mc.font.width(text);
         float x = -w / 2f;
         float y = -(.5f - offset) * (mc.font.lineHeight + 2); // +2 for background padding, -1 for default line spacing
         boolean shadow = false;
-        scale *= 0.005f * (mc.player.position().distanceTo(pos) / 2.4);
-        scale = Math.clamp(scale, 0.015f, 0.15f);
-        Matrix4f matrix = new Matrix4f(eventPoseStack.last().pose());
-        matrix.scale(scale, -scale, 1); // third component determines background distance
+        
+        // Get the final transformation matrix
+        Matrix4f matrix = poseStack.last().pose();
+        
+        // Background settings - make it more transparent to see text better
         float bgOpacity = Minecraft.getInstance().options.getBackgroundOpacity(0.25f);
         int bgColor = (int) (bgOpacity * 255.0f) << 24;
-        int flags = 0;
-        // XXX somehow, the letters farthest from the crosshair render behind the background
-        try (RenderBufferGuard guard = RenderBufferGuard.open(false, false, false)) {
-            mc.font.drawInBatch(text, x, y, colorAlphaHex, shadow, matrix, guard.bufferSource, Font.DisplayMode.SEE_THROUGH, bgColor, flags);
+        
+        // Ensure text has full alpha if not already set
+        if ((colorAlphaHex & 0xFF000000) == 0) {
+            colorAlphaHex |= 0xFF000000; // Add full alpha if missing
+        }
+        
+        // Use immediate mode rendering with proper depth handling
+        try (RenderBufferGuard guard = RenderBufferGuard.open(false, true, false)) {
+            mc.font.drawInBatch(text, x, y, colorAlphaHex, shadow, matrix, guard.bufferSource, Font.DisplayMode.NORMAL, bgColor, 15728880);
         }
 
 		/*var poseStack = new PoseStack();
