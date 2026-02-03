@@ -60,6 +60,7 @@ public class SnitchSqliteDb {
 			", gone_ts BIGINT" +
 			", tags TEXT" +
 			", notes TEXT" +
+			", internal_name TEXT" +
 			", PRIMARY KEY (" + pkeySnitches + ")" +
 			");";
 		try (Statement stmt = conn.createStatement()) {
@@ -94,7 +95,8 @@ public class SnitchSqliteDb {
 					rs.getLong("broken_ts"),
 					rs.getLong("gone_ts"),
 					rs.getString("tags"),
-					rs.getString("notes")
+					rs.getString("notes"),
+					rs.getString("internal_name")
 				);
 				snitches.add(snitch);
 			}
@@ -115,8 +117,8 @@ public class SnitchSqliteDb {
 		if (conn == null) return;
 		if (snitches.size() == 0) return;
 
-		String sql = "INSERT INTO " + tableSnitches + " (world,x,y,z,group_name,type,name,dormant_ts,cull_ts,first_seen_ts,last_seen_ts,created_ts,created_by_uuid,renamed_ts,renamed_by_uuid,lost_jalist_access_ts,broken_ts,gone_ts,tags,notes)" +
-			" VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" +
+		String sql = "INSERT INTO " + tableSnitches + " (world,x,y,z,group_name,type,name,dormant_ts,cull_ts,first_seen_ts,last_seen_ts,created_ts,created_by_uuid,renamed_ts,renamed_by_uuid,lost_jalist_access_ts,broken_ts,gone_ts,tags,notes,internal_name)" +
+			" VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)" +
 			"ON CONFLICT (" + pkeySnitches + ") DO UPDATE SET " +
 			"group_name = excluded.group_name," +
 			"type = excluded.type," +
@@ -133,7 +135,8 @@ public class SnitchSqliteDb {
 			"broken_ts = excluded.broken_ts," +
 			"gone_ts = excluded.gone_ts," +
 			"tags = excluded.tags," +
-			"notes = excluded.notes";
+			"notes = excluded.notes," +
+			"internal_name = excluded.internal_name";
 
 		PreparedStatement pstmt;
 		try {
@@ -172,6 +175,7 @@ public class SnitchSqliteDb {
 				pstmt.setLong(++i, snitch.getGoneTs());
 				pstmt.setString(++i, String.join("\n", snitch.getTags()));
 				pstmt.setString(++i, snitch.getNotes());
+				pstmt.setString(++i, snitch.getInternalName());
 
 				pstmt.addBatch();
 			} catch (SQLException e) {

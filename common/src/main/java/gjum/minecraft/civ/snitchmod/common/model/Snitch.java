@@ -44,6 +44,7 @@ public class Snitch {
 	private long goneTs;
 	private @NotNull HashSet<String> tags = new HashSet<>();
 	private @Nullable String notes;
+	private @Nullable String internalName; // Custom name set by the user
 
 	public Snitch(@NotNull WorldPos pos) {
 		this.pos = pos;
@@ -68,7 +69,8 @@ public class Snitch {
 		long brokenTs,
 		long goneTs,
 		@Nullable String tags,
-		@Nullable String notes
+		@Nullable String notes,
+		@Nullable String internalName
 	) {
 		this.pos = new WorldPos(server, world, x, y, z);
 		this.group = group;
@@ -101,6 +103,7 @@ public class Snitch {
 			this.tags.addAll(Arrays.asList(tags.split("\n")));
 		}
 		this.notes = notes;
+		this.internalName = internalName;
 	}
 
 	public void updateFromCreation(String group, @Nullable Type type, UUID createdByUuid) {
@@ -336,5 +339,13 @@ public class Snitch {
 
 	public @Nullable String getNotes() {
 		return notes;
+	}
+
+	public @Nullable String getInternalName() {
+		return internalName;
+	}
+
+	public void setInternalName(@Nullable String internalName) {
+		this.internalName = internalName;
 	}
 }

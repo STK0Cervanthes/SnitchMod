@@ -147,4 +147,9 @@ public class SnitchesStore {
 	private void upsertSnitchToDB(Snitch snitch) {
 		if (snitch != null) queuedDBSnitches.add(snitch);
 	}
+
+	public void updateSnitch(Snitch snitch) {
+		snitches.put(snitch.pos, snitch);
+		upsertSnitchToDB(snitch);
+	}
 }

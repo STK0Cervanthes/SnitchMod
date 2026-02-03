@@ -138,11 +138,7 @@ public abstract class SnitchMod {
 
 	public void handleTick() {
 		while (openGuiKey.consumeClick()) {
-			// TODO open gui, and rename keybind
-			store.close();
-			store = null;
-			getStore();
-			logToChat(Component.literal("Reloaded the database"));
+			openSnitchesGui();
 		}
 
 		while (toggleSnitchGoneStatusKey.consumeClick()) {
@@ -236,6 +232,14 @@ public abstract class SnitchMod {
 		getStore();
 		if (store == null) return false;
 
+		// Check if this is a /snitches command from the player
+		String messageText = message.getString();
+		if (messageText.trim().equals("/snitches")) {
+			// Run on next tick to avoid threading issues
+			mc.execute(() -> openSnitchesGui());
+			return true; // Drop the command from chat
+		}
+
 		SnitchAlert snitchAlert = SnitchAlert.fromChat(message, store.server, getCurrentWorld());
 		if (snitchAlert != null) {
 			store.updateSnitchFromAlert(snitchAlert);
@@ -328,5 +332,16 @@ public abstract class SnitchMod {
 
 	private void logToChat(Component msg) {
 		mc.gui.getChat().addMessage(Component.literal("[SnitchMod] ").append(msg));
+	}
+
+	public void openSnitchesGui() {
+		if (mc.screen == null) { // Only open if no screen is currently open
+			getStore(); // Ensure store is initialized
+			System.out.println("[SnitchMod] Opening GUI - Store: " + (store != null ? "initialized" : "null"));
+			if (store != null) {
+				System.out.println("[SnitchMod] Store has " + store.getAllSnitches().size() + " snitches");
+			}
+			mc.setScreen(new gjum.minecraft.civ.snitchmod.common.gui.SnitchesGui());
+		}
 	}
 }
