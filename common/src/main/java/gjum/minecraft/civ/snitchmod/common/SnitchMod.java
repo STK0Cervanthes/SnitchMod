@@ -57,6 +57,13 @@ public abstract class SnitchMod {
 		"category.snitchmod"
 	);
 
+	protected static final KeyMapping jalistAutoKey = new KeyMapping(
+		"key.snitchmod.jalistAuto", 
+		InputConstants.Type.KEYSYM,
+		GLFW.GLFW_KEY_J,
+		"category.snitchmod"
+	);
+
 	protected static final KeyMapping toggleSnitchGoneStatusKey = new KeyMapping(
 		"key.snitchmod.toggleSnitchGoneStatusKey",
 		InputConstants.Type.KEYSYM,
@@ -143,6 +150,12 @@ public abstract class SnitchMod {
 			store = null;
 			getStore();
 			logToChat(Component.literal("Reloaded the database"));
+		}
+
+		while (jalistAutoKey.consumeClick()) {
+			// Start JAList auto-pagination - works even in GUI
+			System.out.println("[SnitchMod] J key pressed! Current screen: " + (mc.screen != null ? mc.screen.getClass().getSimpleName() : "null"));
+			JalistAutoPaginator.getInstance().startAutoPagination();
 		}
 
 		while (toggleSnitchGoneStatusKey.consumeClick()) {
@@ -301,6 +314,10 @@ public abstract class SnitchMod {
 				JalistEntry jalistEntry = JalistEntry.fromStack(stack, store.server);
 				if (jalistEntry != null) {
 					jalistEntries.add(jalistEntry);
+					// Notify auto-paginator with actual timestamp data
+					if (JalistAutoPaginator.getInstance().isActive()) {
+						JalistAutoPaginator.getInstance().addSnitchEntry(jalistEntry.group, jalistEntry.dormantTs, jalistEntry.cullTs);
+					}
 				}
 			} catch (Throwable e) {
 				System.err.println("Failed parsing jalist stack " + i + " " + stack);
@@ -310,7 +327,12 @@ public abstract class SnitchMod {
 		}
 		store.updateSnitchesFromJalist(jalistEntries);
 		if (jalistEntries.size() > 0) {
-			logToChat(Component.literal("Found " + jalistEntries.size() + " snitches on JAList page"));
+			// Notify auto-paginator that this page was processed
+			if (JalistAutoPaginator.getInstance().isActive()) {
+				JalistAutoPaginator.getInstance().onJalistPageLoaded(jalistEntries.size());
+			} else {
+				logToChat(Component.literal("Found " + jalistEntries.size() + " snitches on JAList page"));
+			}
 		}
 	}
 
