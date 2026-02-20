@@ -343,8 +343,10 @@ public abstract class SnitchMod {
 	public Stream<Snitch> streamNearbySnitches(Vec3 playerPos, int distance) {
 		getStore();
 		if (store == null) return Stream.empty();
+		String currentWorld = getCurrentWorld();
 		return store.getAllSnitches().stream()
 			.filter(s -> s.getPos().getCenter().distanceTo(playerPos) < distance)
+			.filter(s -> currentWorld != null && currentWorld.equals(s.getPos().getWorld()))
 			.sorted(Comparator.comparing(s -> s.getPos().getCenter().distanceTo(playerPos)));
 	}
 

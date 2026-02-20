@@ -56,17 +56,8 @@ public class JalistAutoPaginator {
         
         logToChat("Starting JAList auto-pagination... This will read all pages automatically.");
         
-        // Start the first page click after a short delay
-        new Thread(() -> {
-            try {
-                Thread.sleep(50); // Wait 50ms before starting
-                if (isActive) {
-                    mc.execute(this::clickNextPage);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
+        // Start the first page click immediately
+        mc.execute(this::clickNextPage);
     }
     
     public void stopAutoPagination() {
@@ -110,17 +101,8 @@ public class JalistAutoPaginator {
             logToChat(String.format("Progress: %d pages (%d snitches so far)", pagesProcessed, totalSnitchesFound));
         }
         
-        // Schedule next page click with very minimal delay for maximum speed
-        new Thread(() -> {
-            try {
-                Thread.sleep(10); // Wait only 10ms between pages for maximum speed
-                if (isActive) {
-                    mc.execute(this::clickNextPage);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
+        // Click next page instantly on page load for maximum speed
+        mc.execute(this::clickNextPage);
     }
     
     public void addSnitchEntry(String group, long dormantTs, long cullTs) {
